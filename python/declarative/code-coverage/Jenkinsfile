@@ -1,1 +1,66 @@
+@Library('Shared-Library_Kanika-SCRUM-248@Kanika-SCRUM-248') _
+
+pipeline {
+    agent any
+
+    environment {
+        PYTHON_ENV = 'venv'
+        VENV_PATH = "${WORKSPACE}/venv/bin"
+        SLACK_CHANNEL = '#jenkins-notification'
+        EMAIL_RECIPIENTS = 'snaatak@gmail.com'
+
+        GIT_REPO_URL = 'https://github.com/OT-MICROSERVICES/attendance-api.git'
+        GIT_BRANCH = 'main'
+
+        SONAR_PROJECT_KEY = 'attendance-api-'
+        SONARQUBE_ENV = 'Pravalika-Sonar'
+        SONAR_HOST_URL = 'http://sonarqube-management-alb-cc9100588ddc6b94.elb.us-west-2.amazonaws.com'
+        SONAR_REPORT_URL = 'http://sonarqube-management-alb-cc9100588ddc6b94.elb.us-west-2.amazonaws.com/dashboard?id=attendance-api-'
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                script {
+                    pythonstaticcodeanalysis.checkoutRepo()
+                }
+            }
+        }
+
+        stage('Setup Python Environment') {
+            steps {
+                script {
+                    pythonstaticcodeanalysis.setupPythonEnv()
+                }
+            }
+        }
+
+        stage('SonarQube Analysis') {
+            steps {
+                script {
+                    pythonstaticcodeanalysis.runSonarScanner()
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            script {
+                pythonstaticcodeanalysis.notify('SUCCESS', env.SLACK_CHANNEL, env.EMAIL_RECIPIENTS, env.SONAR_REPORT_URL)
+            }
+        }
+
+        failure {
+            script {
+                pythonstaticcodeanalysis.notify('FAILURE', env.SLACK_CHANNEL, env.EMAIL_RECIPIENTS, env.SONAR_REPORT_URL)
+            }
+        }
+
+        always {
+            sh "rm -rf ${env.PYTHON_ENV}"
+        }
+    }
+}
+
 
