@@ -1,4 +1,4 @@
-@Library('Shared-Library_Kanika-SCRUM-248@Kanika-SCRUM-248') _
+@Library('Shared-Library_kanika-SCRUM-248@Kanika-SCRUM-248') _
 
 pipeline {
     agent any
